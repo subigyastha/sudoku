@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <iostream>
+#include <stdlib.h>
 
 Engine::Engine()
 {
@@ -15,6 +16,25 @@ Engine::Engine()
 Engine::~Engine()
 {
 }
+string intTOstring(int number);
+
+void Engine::starttime() {
+	if (clockreset)
+		Engine::clock.restart();//if its first time running this loop then rest the clock 
+	clockreset = false;//then make the reset bool false
+	Engine::tm = clock.getElapsedTime();//string the time elasped by the clock in the time variable
+}
+Text Engine::displaytime() {
+	std::system("CLS");
+	std::cout << (int)tm.asSeconds()<<std::endl;
+	Mtime tem = (int)tm.asSeconds();
+	tem.gettime();
+	string times = "Time : " + intTOstring(tem.Rhour())+":"+ intTOstring(tem.Rminute()) + ":" + intTOstring(tem.Rsecond());
+	Text timedisplay(times, font, 40);
+	timedisplay.setPosition(10, 10);
+	timedisplay.setFillColor(Color(255, 255, 255,200));
+	return timedisplay;
+}
 
 bool Engine::runEngine(RenderWindow &window, int level)
 {
@@ -27,9 +47,11 @@ bool Engine::runEngine(RenderWindow &window, int level)
 
 	int** m = new int* [size];
 	m[0] = new int[20*20];
-
+	//int* m = new int[10];
+	//m[1]
 	for (int i = 1; i < size; ++i)
 	{
+		// m[i]=new int[9];
 		m[i] = m[i-1]+size;
 	}
 
@@ -64,8 +86,12 @@ bool Engine::runEngine(RenderWindow &window, int level)
 		Event event;
 		// while there are pending events...
 
+		starttime();
+	
+
 		while (window.pollEvent(event) && state == GAME)
 		{
+			
 			// check the type of the event...
 			switch (event.type)
 			{
@@ -77,11 +103,13 @@ bool Engine::runEngine(RenderWindow &window, int level)
 				break;
 
 			case Event::KeyPressed:
-
+				
+			
 				if ((Keyboard::isKeyPressed(Keyboard::Escape)))
 				{
 					//delete[]m[0];
 					delete[]b[0];
+
 					return false;
 				}
 				selectCell(window, size, index, m, b, input);
@@ -95,6 +123,8 @@ bool Engine::runEngine(RenderWindow &window, int level)
 
 		window.clear();
 		window.draw(background);
+	
+		
 
 		drawSquare(window, m, b, size, index);
 
@@ -112,6 +142,10 @@ bool Engine::runEngine(RenderWindow &window, int level)
 
 		if (state == GAMEOVER)
 		{
+			if(endreset)
+				endtm = tm;//store end time
+			endreset = false;
+			tm = endtm;//set displaying time to endtime
 			string texto = "Game Over!";
 			
 			Text conteudo(texto, font, 60);
@@ -127,6 +161,7 @@ bool Engine::runEngine(RenderWindow &window, int level)
 			}
 
 		}
+		window.draw(displaytime());
 		window.display();	
 	}
 	return true;	
