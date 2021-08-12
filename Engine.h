@@ -3,7 +3,7 @@
 //#include "Player.h"
 #include "Game.h"
 #include <string>
-
+#include"Mtime.h"
 using namespace std;
 using namespace sf;
 
@@ -16,6 +16,9 @@ struct Input {
 class Engine
 {
 private:
+	bool clockreset=true,endreset=true;
+	Clock clock;
+	Time tm,endtm;
 	Font font;
 	Texture texture;
 	enum engineState { GAME, GAMEOVER };
@@ -33,6 +36,8 @@ private:
 	int findmty(int** m,int size);
 	void reset(int** m, bool** b, int size);
 	bool solve(int** m,bool **b,int size);
+	Text displaytime();
+	void starttime();
 public:
 	Engine();
 	~Engine();
