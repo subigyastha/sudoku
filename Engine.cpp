@@ -1,22 +1,13 @@
 #include "Engine.h"
-#include <iostream>
-#include <stdlib.h>
-
-Engine::Engine()
-{
-	srand(time(NULL));
-
-	font.loadFromFile("arial.ttf");
-	texture.loadFromFile("back.png");
-	
-	Game game;	
-	state = GAME;
-}
-
-Engine::~Engine()
-{
-}
+#include"button.h"
+#include<iostream>
+#include"Mtime.h"
+#include"TextBox.h"
 string intTOstring(int number);
+button tryAgain("TRY AGAIN", Color(200, 200, 200, 100),sf::Color::White,sf::Vector2f(200,40),20);
+button solve("SOLVE", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
+button menu("MENU", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
+TextBox namebox(15, sf::Color::Black, true);
 
 void Engine::starttime() {
 	if (clockreset)
@@ -26,46 +17,78 @@ void Engine::starttime() {
 }
 Text Engine::displaytime() {
 	std::system("CLS");
-	std::cout << (int)tm.asSeconds()<<std::endl;
+	std::cout << (int)tm.asSeconds() << std::endl;
 	Mtime tem = (int)tm.asSeconds();
 	tem.gettime();
-	string times = "Time : " + intTOstring(tem.Rhour())+":"+ intTOstring(tem.Rminute()) + ":" + intTOstring(tem.Rsecond());
+	string times = "Time : " + intTOstring(tem.Rhour()) + ":" + intTOstring(tem.Rminute()) + ":" + intTOstring(tem.Rsecond());
 	Text timedisplay(times, font, 40);
 	timedisplay.setPosition(10, 10);
-	timedisplay.setFillColor(Color(255, 255, 255,200));
+	timedisplay.setFillColor(Color(255, 255, 255, 200));
 	return timedisplay;
 }
 
-bool Engine::runEngine(RenderWindow &window, int level)
+Engine::Engine()
+{
+	
+	
+
+	srand(time(NULL));
+
+	font.loadFromFile("arial.ttf");
+	texture.loadFromFile("back.png");
+
+	Game game;
+	state = GAME;
+}
+
+Engine::~Engine()
+{
+}
+
+string intTOstring(int number)
+{
+	if (number == 0)
+		return "0";
+	string temp = "";
+	string returnvalue = "";
+	while (number > 0)
+	{
+		temp += number % 10 + 48;
+		number /= 10;
+	}
+	for (int i = 0; i < temp.length(); i++)
+	{
+		returnvalue += temp[temp.length() - i - 1];
+	}
+
+	return returnvalue;
+}
+bool Engine::runEngine(RenderWindow& window, int level)
 {
 	Sprite background(texture);
-	
+
 	int size = 9;
 	int index = 0;
-	int CellSize = 40;
-	int FontSize = 20;
 
-	int** m = new int* [size];
-	m[0] = new int[20*20];
-	//int* m = new int[10];
-	//m[1]
-	for (int i = 1; i < size; ++i)
+	int** m = new int* [20];
+	m[0] = new int[20 * 20];
+
+	for (int i = 1; i < 20; i++)
 	{
-		// m[i]=new int[9];
-		m[i] = m[i-1]+size;
+		m[i] = m[i - 1] + 20;
 	}
 
-	bool** b = new bool* [size];
-	b[0] = new bool[20*20];
+	bool** b = new bool* [20];
+	b[0] = new bool[20 * 20];
 
-	for (int i = 1; i < size; i++)
+	for (int i = 1; i < 20; i++)
 	{
-		b[i] = b[i - 1] + size;
+		b[i] = b[i - 1] + 20;
 	}
 
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < 20; i++)
 	{
-		for (int j = 0; j < size; j++)
+		for (int j = 0; j < 20; j++)
 		{
 			b[i][j] = true;
 		}
@@ -79,16 +102,16 @@ bool Engine::runEngine(RenderWindow &window, int level)
 	input.val = 0;
 	input.value = "";
 
-	
+	CellSize = 40;
+	FontSize = 20;
 
 	while (window.isOpen())
 	{
+		
 		Event event;
 		// while there are pending events...
-
+		
 		starttime();
-	
-
 		while (window.pollEvent(event) && state == GAME)
 		{
 			
@@ -103,15 +126,40 @@ bool Engine::runEngine(RenderWindow &window, int level)
 				break;
 
 			case Event::KeyPressed:
-				
-			
+
 				if ((Keyboard::isKeyPressed(Keyboard::Escape)))
 				{
-					//delete[]m[0];
+					delete[]m[0];
 					delete[]b[0];
-
 					return false;
 				}
+			case Event::MouseButtonPressed:
+			{	if (tryAgain.isMouseOver(window))
+				reset(m, b, size);
+			else if (solve.isMouseOver(window))
+			{
+				solveb = true;
+				reset(m, b, size);
+				solveSudoku(window, m, b, size);
+				
+
+			}
+			else if (menu.isMouseOver(window))
+			{
+				delete[]m[0];
+				delete[]b[0];
+				return false;
+			}
+			else if (namebox.isMouseOver(window))
+			{
+				namebox.setSelected(true);
+				if (event.type == sf::Event::TextEntered) {
+					namebox.typedOn(event);
+					
+				}
+			}
+				
+			}
 				selectCell(window, size, index, m, b, input);
 				break;
 
@@ -120,11 +168,55 @@ bool Engine::runEngine(RenderWindow &window, int level)
 			}
 
 		}
+		
+		if (tryAgain.isMouseOver(window))
 
-		window.clear();
-		window.draw(background);
+			tryAgain.setFillColors(Color(200, 200, 200, 230));
+		else
+			tryAgain.setFillColors(Color(200, 200, 200, 100));
+
+
+		if (solve.isMouseOver(window))
+
+		solve.setFillColors(Color(200, 200, 200, 230));
+		else
+			solve.setFillColors(Color(200, 200, 200, 100));
+		if (namebox.isMouseOver(window))
+
+			namebox.setFillColors(Color(200, 200, 200, 230));
+		else
+			namebox.setFillColors(Color(200, 200, 200, 100));
+
+
+
+		if (menu.isMouseOver(window))
+
+			menu.setFillColors(Color(200, 200, 200, 230));
+		else
+			menu.setFillColors(Color(200, 200, 200, 100));
+
+
 	
 		
+		namebox.setFont(font);
+	namebox.setPosition({730,400 });
+	namebox.setboundery(sf::Color::Red);
+	
+		tryAgain.setPosition({ 700,300 });
+		tryAgain.setFont(font);
+		solve.setPosition({ 700,250 });
+		solve.setFont(font);
+		menu.setPosition({ 700,350 });
+		menu.setFont(font);
+		window.clear();
+		window.draw(background);
+		
+		tryAgain.drawTo(window);
+		solve.drawTo(window);
+		menu.drawTo(window);
+		
+
+
 
 		drawSquare(window, m, b, size, index);
 
@@ -133,7 +225,7 @@ bool Engine::runEngine(RenderWindow &window, int level)
 		input.cell.setFont(font);
 		input.cell.setString(input.value);
 		input.cell.setPosition(10, 10);
-		input.cell.setPosition((400 - size / 2 * CellSize) + index%size*CellSize + FontSize / 2, (300 - size / 2 * CellSize) + index / size*CellSize + FontSize / 2);
+		input.cell.setPosition((400 - size / 2 * CellSize) + index % size * CellSize + FontSize / 2, (300 - size / 2 * CellSize) + index / size * CellSize + FontSize / 2);
 
 		window.draw(input.cell);
 
@@ -142,34 +234,59 @@ bool Engine::runEngine(RenderWindow &window, int level)
 
 		if (state == GAMEOVER)
 		{
-			if(endreset)
+			int x;//x psotion of text
+			if (endreset)
 				endtm = tm;//store end time
 			endreset = false;
 			tm = endtm;//set displaying time to endtime
-			string texto = "Game Over!";
-			
-			Text conteudo(texto, font, 60);
-			conteudo.setPosition(270, 50);
-			conteudo.setFillColor(Color(80, 80, 80));
-			window.draw(conteudo);
-
-			if ((Keyboard::isKeyPressed(Keyboard::Escape)))
-			{
-				delete[]m[0];
-				delete[]b[0];
-				return false;
+			string texto = "";
+			//logic for set psoition
+			if (!solveb) {
+				texto = "Congratulation";
+				x = 230;
 			}
+			else {
+				x = 320;
+				texto = "Solved";
+			}
+			Text conteudo(texto, font, 60);
+			conteudo.setPosition(x, 50);
+			conteudo.setFillColor(Color(80, 80, 80));
+			namebox.drawBack(window, { 700,400 });
+			window.draw(conteudo);
+			namebox.drawTo(window);
+			
+				if ((Keyboard::isKeyPressed(Keyboard::Escape) || event.type==Event::Closed))
+				{
+
+					delete[]m[0];
+					delete[]b[0];
+					window.close();
+
+				}
+			
+			
+			if (menu.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			{
+					delete[]m[0];
+					delete[]b[0];
+					return false;
+			}
+
+
+			
+				
 
 		}
 		window.draw(displaytime());
-		window.display();	
+		window.display();
 	}
-	return true;	
+	return true;
 }
-		
+
 bool Engine::checkRow(int** m, int size, int row, int value)
 {
-	for (int i = 0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		if (m[row][i] == value)
 		{
@@ -179,9 +296,9 @@ bool Engine::checkRow(int** m, int size, int row, int value)
 	return true;
 }
 
-bool Engine::checkColumn(int ** m, int size, int column, int value)
+bool Engine::checkColumn(int** m, int size, int column, int value)
 {
-	for (int i = 0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		if (m[i][column] == value)
 		{
@@ -191,7 +308,7 @@ bool Engine::checkColumn(int ** m, int size, int column, int value)
 	return true;
 }
 
-bool Engine::checkSquare(int ** m, int tamanho, int row, int column, int value)
+bool Engine::checkSquare(int** m, int tamanho, int row, int column, int value)
 {
 	int quadx = 3, quady = 3;
 
@@ -199,12 +316,12 @@ bool Engine::checkSquare(int ** m, int tamanho, int row, int column, int value)
 	int sizex = column / quadx;
 
 
-	sizey = (sizey*quady);
-	sizex = (sizex*quadx);
+	sizey = (sizey * quady);
+	sizex = (sizex * quadx);
 
-	for (int i = sizey; i<sizey + quady; i++)
+	for (int i = sizey; i < sizey + quady; i++)
 	{
-		for (int j = sizex; j<sizex + quadx; j++)
+		for (int j = sizex; j < sizex + quadx; j++)
 		{
 			if (m[i][j] == value)
 			{
@@ -218,7 +335,7 @@ bool Engine::checkSquare(int ** m, int tamanho, int row, int column, int value)
 
 bool Engine::removing(bool bol[16], int t)
 {
-	for (int i = 0; i<t; i++)
+	for (int i = 0; i < t; i++)
 	{
 		if (bol[i])
 		{
@@ -228,206 +345,183 @@ bool Engine::removing(bool bol[16], int t)
 	return true;
 }
 
-void Engine::selectCell(RenderWindow &window, int size,int &index, int **matrix, bool **bloc, Input &input)
+void Engine::selectCell(RenderWindow& window, int size, int& index, int** matrix, bool** bloc, Input& input)
 {
-	if(Keyboard::isKeyPressed(Keyboard::Left))
+	if (Keyboard::isKeyPressed(Keyboard::Left))
 	{
+
 		index--;
-		if(index<0)
+
+		if (index < 0)
 		{
-			index=size*size-1;
+			index = size * size - 1;
+
+
 		}
-		input.value="";
+		input.value = "";
 	}
 
-	if(Keyboard::isKeyPressed(Keyboard::Right))
+	if (Keyboard::isKeyPressed(Keyboard::Right))
 	{
 		index++;
-		if(index>size*size-1)
+
+		if (index > size * size - 1)
 		{
-			index=0;
+			index = 0;
+
 		}
-		input.value="";
+		input.value = "";
 	}
-	if(Keyboard::isKeyPressed(Keyboard::Up))
+	if (Keyboard::isKeyPressed(Keyboard::Up))
 	{
-		index-=size;
-		if(index<0)
+		index -= size;
+
+		if (index < 0)
 		{
-			index = (size * size) + index;
-			//index=((size*size))-size+((index+size)%size);
+			index = ((size * size)) - size + ((index + size) % size);
+
 		}
-		input.value="";
+		input.value = "";
 	}
 
-	if(Keyboard::isKeyPressed(Keyboard::Down))
+	if (Keyboard::isKeyPressed(Keyboard::Down))
 	{
-		index+=size;
-		if(index>size*size-1)
+		index += size;
+
+		if (index > size * size - 1)
 		{
-			index=index%size;
+			index = index % size;
+
 		}
-		input.value="";
+		input.value = "";
 	}
-	if (Keyboard::isKeyPressed(Keyboard::LShift)) {
-		reset(matrix, bloc, size);
-		solve(matrix,bloc,size);
-		for (int i = 0; i<size; i++) {
-			for (int j = 0; j < size; j++) {
-				std::cout << matrix[i][j] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	if(!bloc[index/size][index%size] && input.value.size()<=1)
+	if (!bloc[index / size][index % size] && input.value.size() <= 1)
 	{
-		if(Keyboard::isKeyPressed(Keyboard::Num0) || Keyboard::isKeyPressed(Keyboard::Numpad0))
+		if (Keyboard::isKeyPressed(Keyboard::Num0) || Keyboard::isKeyPressed(Keyboard::Numpad0))
 		{
-			input.value+='0';
+			input.value += '0';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num1) || Keyboard::isKeyPressed(Keyboard::Numpad1))
+		if (Keyboard::isKeyPressed(Keyboard::Num1) || Keyboard::isKeyPressed(Keyboard::Numpad1))
 		{
-			input.value+='1';
+			input.value += '1';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num2) || Keyboard::isKeyPressed(Keyboard::Numpad2))
+		if (Keyboard::isKeyPressed(Keyboard::Num2) || Keyboard::isKeyPressed(Keyboard::Numpad2))
 		{
-			input.value+='2';
+			input.value += '2';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num3) || Keyboard::isKeyPressed(Keyboard::Numpad3))
+		if (Keyboard::isKeyPressed(Keyboard::Num3) || Keyboard::isKeyPressed(Keyboard::Numpad3))
 		{
-			input.value+='3';
+			input.value += '3';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num4) || Keyboard::isKeyPressed(Keyboard::Numpad4))
+		if (Keyboard::isKeyPressed(Keyboard::Num4) || Keyboard::isKeyPressed(Keyboard::Numpad4))
 		{
-			input.value+='4';
+			input.value += '4';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num5) || Keyboard::isKeyPressed(Keyboard::Numpad5))
+		if (Keyboard::isKeyPressed(Keyboard::Num5) || Keyboard::isKeyPressed(Keyboard::Numpad5))
 		{
-			input.value+='5';
+			input.value += '5';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num6) || Keyboard::isKeyPressed(Keyboard::Numpad6))
+		if (Keyboard::isKeyPressed(Keyboard::Num6) || Keyboard::isKeyPressed(Keyboard::Numpad6))
 		{
-			input.value+='6';
+			input.value += '6';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num7) || Keyboard::isKeyPressed(Keyboard::Numpad7))
+		if (Keyboard::isKeyPressed(Keyboard::Num7) || Keyboard::isKeyPressed(Keyboard::Numpad7))
 		{
-			input.value+='7';
+			input.value += '7';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num8) || Keyboard::isKeyPressed(Keyboard::Numpad8))
+		if (Keyboard::isKeyPressed(Keyboard::Num8) || Keyboard::isKeyPressed(Keyboard::Numpad8))
 		{
-			input.value+='8';
+			input.value += '8';
 		}
-		if(Keyboard::isKeyPressed(Keyboard::Num9) || Keyboard::isKeyPressed(Keyboard::Numpad9))
+		if (Keyboard::isKeyPressed(Keyboard::Num9) || Keyboard::isKeyPressed(Keyboard::Numpad9))
 		{
-			input.value+='9';
+			input.value += '9';
 		}
-		if (Keyboard::isKeyPressed(Keyboard::Delete) || Keyboard::isKeyPressed(Keyboard::BackSpace)) {
-			input.value = "";
-		}
+
 	}
-	if(!bloc[index/size][index%size])
+
+	if (!bloc[index / size][index % size])
 	{
-		
-		if(Keyboard::isKeyPressed(Keyboard::Return))
+		if (Keyboard::isKeyPressed(Keyboard::Return))
 		{
 			input.val = atoi(input.value.c_str());
 
 			bool correct;
-			
-			correct=checkColumn(matrix,size,index%size,input.val) && checkRow(matrix,size,index/size,input.val) && checkSquare(matrix,size,index/size,index%size, input.val);
 
-			if(input.val>0 && input.val<=size && correct)
+			correct = checkColumn(matrix, size, index % size, input.val) && checkRow(matrix, size, index / size, input.val) && checkSquare(matrix, size, index / size, index % size, input.val);
+
+			if (input.val > 0 && input.val <= size && correct)
 			{
-				matrix[index/size][index%size]=input.val;
-				input.value="";
+				matrix[index / size][index % size] = input.val;
+				input.value = "";
 			}
 			else
 			{
-				input.value="";
+				input.value = "";
 			}
 		}
-		if (Keyboard::isKeyPressed(Keyboard::Delete)) {
-			matrix[index / size][index % size] = 0;
-			//input.value = "";
-		}
+		
 	}
 }
 
-string intTOstring(int number)
-{
-	if (number == 0)
-	        return "0";
-	    string temp="";
-	    string returnvalue="";
-	    while (number>0)
-	    {
-	        temp+=number%10+48;
-	        number/=10;
-	    }
-	    for (int i=0;i<temp.length();i++)
-	    {
-	    	 returnvalue+=temp[temp.length()-i-1];
-	    }
 
-	    return returnvalue;
-}
 
-void Engine::drawSquare(RenderWindow &window, int **matrix,bool **bloc, int size, int index)
+void Engine::drawSquare(RenderWindow& window, int** matrix, bool** bloc, int size, int index)
 {
 	int quadx = 3, quady = 3;
-		
+
 	int cellSize = 40, fontSize = 20;
 
 	Font font;
 	font.loadFromFile("arial.ttf");
 
 	RectangleShape mediumSquare;
-	mediumSquare.setSize(Vector2f(cellSize*quadx, cellSize*quady));
+	mediumSquare.setSize(Vector2f(cellSize * quadx, cellSize * quady));
 	mediumSquare.setOutlineThickness(2);
 	mediumSquare.setOutlineColor(sf::Color::Black);
 	//quadradog.setOutlineColor(sf::Color::Red);
 	mediumSquare.setFillColor(sf::Color::Transparent);
 
 	RectangleShape bigSquare;
-	bigSquare.setSize(Vector2f(cellSize*size, cellSize*size));
+	bigSquare.setSize(Vector2f(cellSize * size, cellSize * size));
 	bigSquare.setOutlineThickness(4);
 	bigSquare.setOutlineColor(sf::Color::Black);
 	//quadradofull.setOutlineColor(sf::Color::Red);
 	bigSquare.setFillColor(sf::Color::Transparent);
-	bigSquare.setPosition((400-size/2*cellSize), (300-size/2*cellSize));
+	bigSquare.setPosition((400 - size / 2 * cellSize), (300 - size / 2 * cellSize));
 
 	RectangleShape smallSquare;
 	smallSquare.setSize(Vector2f(cellSize, cellSize));
 	smallSquare.setOutlineThickness(1);
-	smallSquare.setOutlineColor(Color(200,200,200));
+	smallSquare.setOutlineColor(Color(220,220,220));
 	smallSquare.setFillColor(sf::Color::Transparent);
 
-	for(int i=0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
-		for(int j=0; j<size; j++)
+		for (int j = 0; j < size; j++)
 		{
-			smallSquare.setPosition((400-size/2*cellSize)+j*cellSize,(300-size/2*cellSize)+i*cellSize);
+			smallSquare.setPosition((400 - size / 2 * cellSize) + j * cellSize, (300 - size / 2 * cellSize) + i * cellSize);
 			window.draw(smallSquare);
 			string text;
-			if(matrix[i][j]>0)
+			if (matrix[i][j] > 0)
 			{
 				text = intTOstring(matrix[i][j]);
 			}
 			else
 			{
-				text="";
+				text = "";
 			}
-			if(index%size==j && index/size==i)
+			if (index % size == j && index / size == i)
 			{
-				smallSquare.setFillColor(Color(0,255,0,210));
-				smallSquare.setPosition((400-size/2*cellSize)+j*cellSize,(300-size/2*cellSize)+i*cellSize);
+				smallSquare.setFillColor(Color(200,200,200));
+				smallSquare.setPosition((400 - size / 2 * cellSize) + j * cellSize, (300 - size / 2 * cellSize) + i * cellSize);
 				window.draw(smallSquare);
 				smallSquare.setFillColor(sf::Color::Transparent);
 			}
 
 			Text cell(text, font, fontSize);
-			cell.setPosition((400-size/2*cellSize)+j*cellSize+fontSize/2, (300-size/2*cellSize)+i*cellSize+fontSize/2);
-			if(bloc[i][j])
+			cell.setPosition((400 - size / 2 * cellSize) + j * cellSize + fontSize / 2, (300 - size / 2 * cellSize) + i * cellSize + fontSize / 2);
+			if (bloc[i][j])
 			{
 				cell.setFillColor(Color(80, 80, 80));
 			}
@@ -441,13 +535,13 @@ void Engine::drawSquare(RenderWindow &window, int **matrix,bool **bloc, int size
 		}
 	}
 
-	for(int i=0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
-		for(int j=0; j<size; j++)
+		for (int j = 0; j < size; j++)
 		{
-			if(i%quady==0 && j%quadx==0)
+			if (i % quady == 0 && j % quadx == 0)
 			{
-				mediumSquare.setPosition((400-size/2*cellSize)+j*cellSize,(300-size/2*cellSize)+i*cellSize);
+				mediumSquare.setPosition((400 - size / 2 * cellSize) + j * cellSize, (300 - size / 2 * cellSize) + i * cellSize);
 				window.draw(mediumSquare);
 			}
 		}
@@ -455,14 +549,14 @@ void Engine::drawSquare(RenderWindow &window, int **matrix,bool **bloc, int size
 	window.draw(bigSquare);
 }
 
-void Engine::fillTable(int** m, int &size, RenderWindow &window)
+void Engine::fillTable(int** m, int& size, RenderWindow& window)
 {
 
 	int val[16];
 	bool valbool[16];
 
 
-	for (int i = 0; i<16; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		val[i] = i + 1;
 		valbool[i] = true;
@@ -476,7 +570,7 @@ void Engine::fillTable(int** m, int &size, RenderWindow &window)
 	{
 		for (int j = 0; j < size; j++)
 		{
-			
+
 			if (valbool[valueRow])
 			{
 				bool check;
@@ -486,7 +580,7 @@ void Engine::fillTable(int** m, int &size, RenderWindow &window)
 				if (check)
 				{
 					m[i][j] = val[valueRow];
-					for (int i = 0; i<16; i++)
+					for (int i = 0; i < 16; i++)
 					{
 						valbool[i] = true;
 					}
@@ -505,14 +599,14 @@ void Engine::fillTable(int** m, int &size, RenderWindow &window)
 				j--;
 				if (removing(valbool, size))
 				{
-					for (int x = 0; x<16; x++)
+					for (int x = 0; x < 16; x++)
 					{
 						valbool[x] = true;
 						m[i][x] = 0;
 					}
 					reset++;
 					j = -1;
-					if (reset>1000)
+					if (reset > 1000)
 					{
 						i = -1;
 						j = -1;
@@ -533,7 +627,7 @@ void Engine::fillTable(int** m, int &size, RenderWindow &window)
 
 }
 
-void Engine::setLevel(int ** m,bool **b, int size, int difficulty)
+void Engine::setLevel(int** m, bool** b, int size, int difficulty)
 {
 	int amount;
 	switch (difficulty)
@@ -551,13 +645,13 @@ void Engine::setLevel(int ** m,bool **b, int size, int difficulty)
 		amount = 2;
 		break;
 	}
-	int numberCells = (size*size);
+	int numberCells = (size * size);
 	int left = numberCells / amount;
 	int deleted = numberCells - left;
 
 	int row = rand() % size;
 	int column = rand() % size;
-	for (int i = 0; i<deleted; i++)
+	for (int i = 0; i < deleted; i++)
 	{
 		if (m[row][column] > 0)
 		{
@@ -571,13 +665,21 @@ void Engine::setLevel(int ** m,bool **b, int size, int difficulty)
 			i--;
 		}
 	}
+
+
 }
 
-bool Engine::checkWin(int ** m,int size)
+
+
+
+
+
+
+bool Engine::checkWin(int** m, int size)
 {
-	for (int i = 0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
-		for (int j = 0; j<size; j++)
+		for (int j = 0; j < size; j++)
 		{
 			if (m[i][j] == 0)
 			{
@@ -586,6 +688,21 @@ bool Engine::checkWin(int ** m,int size)
 		}
 	}
 	return true;
+}
+void Engine::reset(int** m, bool** b, int size)
+{
+
+
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 9; j++) {
+			if (b[i][j] == false)
+				m[i][j] = 0;
+		}
+	}
+
+
+
 }
 int Engine::findmty(int** m, int size)
 {
@@ -598,38 +715,36 @@ int Engine::findmty(int** m, int size)
 	}
 	return -1;
 }
-void Engine::reset(int** m, bool** b, int size) {
-	for(int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
-			if (b[i][j] == false)
-				m[i][j] = 0;
+bool Engine::solveSudoku(RenderWindow &window ,int** m, bool** b, int size)
+{
+	int row, col;
+	int index = findmty(m, size);
+	if (index == -1) return true;
+	else
+	{
+		row = index / size;
+		col = index % size;
+	}
+	for (int i = 1; i <= size; i++)
+	{
+		bool correct;
+		correct = checkColumn(m, size, col, i) && checkRow(m, size, row, i) && checkSquare(m, size, row, col, i);
+		if (correct)
+		{
+
+			m[row][col] = i;
+			
+
+
+			if (solveSudoku(window,m, b, size))
+			{
+				return true;
+			}
+			m[row][col] = 0;
 		}
 	}
+	return false;
 }
- bool Engine::solve(int **m,bool **b,int size)
- {
-	 int row, col;
-	 int index = findmty(m, size);
-	 if (index == -1) return true;
-	 else
-	 {
-		 row = index / size;
-		 col = index % size;
-	 }
-	 for (int i = 1; i <= size; i++) 
-	 {
-		 bool correct;
-		 correct = checkColumn(m, size, col, i) && checkRow(m, size, row, i) && checkSquare(m,size, row, col, i);
-		 if (correct) 
-		 {
 
-			 m[row][col] = i;
-			 if (solve(m,b, size))
-			 {
-				 return true;
-			 }
-			 m[row][col] = 0;
-		 }
-	 }
-	 return false;
- }
+
+
