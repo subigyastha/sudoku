@@ -1,37 +1,38 @@
 #include "Engine.h"
-#include"button.h"
 #include<iostream>
-#include"Mtime.h"
-#include"TextBox.h"
-string intTOstring(int number);
-button tryAgain("TRY AGAIN", Color(200, 200, 200, 100),sf::Color::White,sf::Vector2f(200,40),20);
-button solve("SOLVE", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
+
+
+button tryAgain("TRY AGAIN", sf::Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
+button solveButton("SOLVE", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
 button menu("MENU", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
-TextBox namebox(15, sf::Color::Black, true);
+button submit("SUBMIT", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 40), 20);
+TextBox namebox(20, sf::Color::Black, false);
+Player player;
+
+string intTOstring(int number);
+
+// Time workings
 
 void Engine::starttime() {
-	if (clockreset)
-		Engine::clock.restart();//if its first time running this loop then rest the clock 
-	clockreset = false;//then make the reset bool false
-	Engine::tm = clock.getElapsedTime();//string the time elasped by the clock in the time variable
-}
+		if (clockreset)
+			Engine::clock.restart();//if its first time running this loop then rest the clock 
+		clockreset = false;//then make the reset bool false
+		Engine::tm = clock.getElapsedTime();//string the time elasped by the clock in the time variable
+	}
 Text Engine::displaytime() {
-	std::system("CLS");
-	std::cout << (int)tm.asSeconds() << std::endl;
-	Mtime tem = (int)tm.asSeconds();
-	tem.gettime();
-	string times = "Time : " + intTOstring(tem.Rhour()) + ":" + intTOstring(tem.Rminute()) + ":" + intTOstring(tem.Rsecond());
-	Text timedisplay(times, font, 40);
-	timedisplay.setPosition(10, 10);
-	timedisplay.setFillColor(Color(255, 255, 255, 200));
-	return timedisplay;
-}
+		system("CLS");
+		Mtime tem = (int)tm.asSeconds();
+		tem.gettime();
+		string times = "Time : " + intTOstring(tem.Rhour()) + ":" + intTOstring(tem.Rminute()) + ":" + intTOstring(tem.Rsecond());
+		Text timedisplay(times, font, 40);
+		timedisplay.setPosition(10, 10);
+		timedisplay.setFillColor(Color(255, 255, 255, 200));
+		return timedisplay;
+	}
+
 
 Engine::Engine()
 {
-	
-	
-
 	srand(time(NULL));
 
 	font.loadFromFile("arial.ttf");
@@ -45,24 +46,6 @@ Engine::~Engine()
 {
 }
 
-string intTOstring(int number)
-{
-	if (number == 0)
-		return "0";
-	string temp = "";
-	string returnvalue = "";
-	while (number > 0)
-	{
-		temp += number % 10 + 48;
-		number /= 10;
-	}
-	for (int i = 0; i < temp.length(); i++)
-	{
-		returnvalue += temp[temp.length() - i - 1];
-	}
-
-	return returnvalue;
-}
 bool Engine::runEngine(RenderWindow& window, int level)
 {
 	Sprite background(texture);
@@ -107,116 +90,111 @@ bool Engine::runEngine(RenderWindow& window, int level)
 
 	while (window.isOpen())
 	{
-		
+
 		Event event;
 		// while there are pending events...
-		
+
 		starttime();
 		while (window.pollEvent(event) && state == GAME)
 		{
-			
 			// check the type of the event...
 			switch (event.type)
 			{
 				// window closed
-			case Event::Closed:
-				delete[]m[0];
-				delete[]b[0];
-				window.close();
-				break;
-
-			case Event::KeyPressed:
-
-				if ((Keyboard::isKeyPressed(Keyboard::Escape)))
-				{
+				case Event::Closed:
 					delete[]m[0];
 					delete[]b[0];
-					return false;
-				}
-			case Event::MouseButtonPressed:
-			{	if (tryAgain.isMouseOver(window))
-				reset(m, b, size);
-			else if (solve.isMouseOver(window))
-			{
-				solveb = true;
-				reset(m, b, size);
-				solveSudoku(window, m, b, size);
-				
+					window.close();
+					break;
 
-			}
-			else if (menu.isMouseOver(window))
-			{
-				delete[]m[0];
-				delete[]b[0];
-				return false;
-			}
-			else if (namebox.isMouseOver(window))
-			{
-				namebox.setSelected(true);
-				if (event.type == sf::Event::TextEntered) {
-					namebox.typedOn(event);
-					
+				case Event::KeyPressed:
+
+					if ((Keyboard::isKeyPressed(Keyboard::Escape)))
+					{
+						delete[]m[0];
+						delete[]b[0];
+						return false;
+					}
+		
+				case Event::MouseButtonPressed:
+				{	if (tryAgain.isMouseOver(window))
+					reset(m, b, size);
+					else if (solveButton.isMouseOver(window))
+					{
+						solveb = true;
+						reset(m, b, size);
+						solve(m, b, size);
+					}
+					else if (menu.isMouseOver(window))
+					{
+						delete[]m[0];
+						delete[]b[0];
+						return false;
+					}
+
 				}
-			}
-				
-			}
-				selectCell(window, size, index, m, b, input);
-				break;
+
+			selectCell(window, size, index, m, b, input);
+			break;
 
 			default:
 				break;
 			}
 
 		}
-		
-		if (tryAgain.isMouseOver(window))
 
-			tryAgain.setFillColors(Color(200, 200, 200, 230));
-		else
-			tryAgain.setFillColors(Color(200, 200, 200, 100));
-
-
-		if (solve.isMouseOver(window))
-
-		solve.setFillColors(Color(200, 200, 200, 230));
-		else
-			solve.setFillColors(Color(200, 200, 200, 100));
-		if (namebox.isMouseOver(window))
-
-			namebox.setFillColors(Color(200, 200, 200, 230));
-		else
-			namebox.setFillColors(Color(200, 200, 200, 100));
+		//button n textbox config configs 
+		{
+			if (tryAgain.isMouseOver(window))
+				tryAgain.setFillColors(Color(200, 200, 200, 230));
+			else
+				tryAgain.setFillColors(Color(200, 200, 200, 100));
 
 
+			if (solveButton.isMouseOver(window))
+				solveButton.setFillColors(Color(200, 200, 200, 230));
+			else
+				solveButton.setFillColors(Color(200, 200, 200, 100));
 
-		if (menu.isMouseOver(window))
+			if (menu.isMouseOver(window))
+				menu.setFillColors(Color(200, 200, 200, 230));
+			else
+				menu.setFillColors(Color(200, 200, 200, 100));
 
-			menu.setFillColors(Color(200, 200, 200, 230));
-		else
-			menu.setFillColors(Color(200, 200, 200, 100));
+			if (submit.isMouseOver(window))
+				submit.setFillColors(Color(200, 200, 200, 230));
+			else
+				submit.setFillColors(Color(200, 200, 200, 100));
 
 
-	
-		
-		namebox.setFont(font);
-	namebox.setPosition({730,400 });
-	namebox.setboundery(sf::Color::Red);
-	
-		tryAgain.setPosition({ 700,300 });
-		tryAgain.setFont(font);
-		solve.setPosition({ 700,250 });
-		solve.setFont(font);
-		menu.setPosition({ 700,350 });
-		menu.setFont(font);
+
+			namebox.setFont(font);
+			namebox.setPosition({ 715,415 });
+			namebox.setFillColors(Color(0, 0, 0));
+
+			tryAgain.setPosition({ 700,300 });
+			tryAgain.setFont(font);
+
+			solveButton.setPosition({ 700,250 });
+			solveButton.setFont(font);
+
+			menu.setPosition({ 700,350 });
+			menu.setFont(font);
+			if(submit.isMouseOver(window))
+				submit.setPosition({ 700,460 });
+			else
+				submit.setPosition({ 700,465 });
+			submit.setFont(font);
+		} 
+
+
 		window.clear();
 		window.draw(background);
-		
+
 		tryAgain.drawTo(window);
-		solve.drawTo(window);
+		solveButton.drawTo(window);
 		menu.drawTo(window);
 		
-
-
 
 		drawSquare(window, m, b, size, index);
 
@@ -232,51 +210,75 @@ bool Engine::runEngine(RenderWindow& window, int level)
 		if (checkWin(m, size))
 			state = GAMEOVER;
 
+		
+
 		if (state == GAMEOVER)
 		{
-			int x;//x psotion of text
+
+			int endmsgpos;//x psotion of text
 			if (endreset)
 				endtm = tm;//store end time
 			endreset = false;
 			tm = endtm;//set displaying time to endtime
+			
+			
 			string texto = "";
-			//logic for set psoition
 			if (!solveb) {
 				texto = "Congratulation";
-				x = 230;
+				endmsgpos = 230;
 			}
 			else {
-				x = 320;
+				endmsgpos = 320;
 				texto = "Solved";
 			}
+
 			Text conteudo(texto, font, 60);
-			conteudo.setPosition(x, 50);
+			conteudo.setPosition(endmsgpos, 50);
 			conteudo.setFillColor(Color(80, 80, 80));
-			namebox.drawBack(window, { 700,400 });
 			window.draw(conteudo);
+
+
+			namebox.drawBox(window);
 			namebox.drawTo(window);
-			
-				if ((Keyboard::isKeyPressed(Keyboard::Escape) || event.type==Event::Closed))
-				{
+			submit.drawTo(window);
 
-					delete[]m[0];
-					delete[]b[0];
-					window.close();
-
-				}
-			
-			
-			if (menu.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			if ((Keyboard::isKeyPressed(Keyboard::Escape) || event.type == Event::Closed))
 			{
-					delete[]m[0];
-					delete[]b[0];
-					return false;
+
+				delete[]m[0];
+				delete[]b[0];
+				window.close();
+
 			}
 
+			if (namebox.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			{
+				namebox.setSelected(true);
+				namebox.setLimit(true, 6);
+			}
 
-			
-				
+			if (event.type==sf::Event::TextEntered && namebox.selectornot() ) {
+				//std::cout << event.text.unicode;
+				namebox.typedOn(event);
+			}
 
+		
+			if (submit.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			{
+				player.setname(namebox.getText());
+				player.setDifficluty(level);
+				player.setTime((int)endtm.asSeconds());
+				std::cout << player.getname()<<std::endl;
+				std::cout << player.getDifficulty() << std::endl;
+				player.getTime().gettime();
+			}
+
+			if (menu.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			{
+				delete[]m[0];
+				delete[]b[0];
+				return false;
+			}
 		}
 		window.draw(displaytime());
 		window.display();
@@ -460,11 +462,9 @@ void Engine::selectCell(RenderWindow& window, int size, int& index, int** matrix
 				input.value = "";
 			}
 		}
-		
+
 	}
 }
-
-
 
 void Engine::drawSquare(RenderWindow& window, int** matrix, bool** bloc, int size, int index)
 {
@@ -493,7 +493,7 @@ void Engine::drawSquare(RenderWindow& window, int** matrix, bool** bloc, int siz
 	RectangleShape smallSquare;
 	smallSquare.setSize(Vector2f(cellSize, cellSize));
 	smallSquare.setOutlineThickness(1);
-	smallSquare.setOutlineColor(Color(220,220,220));
+	smallSquare.setOutlineColor(Color(220, 220, 220));
 	smallSquare.setFillColor(sf::Color::Transparent);
 
 	for (int i = 0; i < size; i++)
@@ -513,7 +513,7 @@ void Engine::drawSquare(RenderWindow& window, int** matrix, bool** bloc, int siz
 			}
 			if (index % size == j && index / size == i)
 			{
-				smallSquare.setFillColor(Color(200,200,200));
+				smallSquare.setFillColor(Color(200, 200, 200));
 				smallSquare.setPosition((400 - size / 2 * cellSize) + j * cellSize, (300 - size / 2 * cellSize) + i * cellSize);
 				window.draw(smallSquare);
 				smallSquare.setFillColor(sf::Color::Transparent);
@@ -669,12 +669,6 @@ void Engine::setLevel(int** m, bool** b, int size, int difficulty)
 
 }
 
-
-
-
-
-
-
 bool Engine::checkWin(int** m, int size)
 {
 	for (int i = 0; i < size; i++)
@@ -689,6 +683,26 @@ bool Engine::checkWin(int** m, int size)
 	}
 	return true;
 }
+
+string intTOstring(int number)
+{
+	if (number == 0)
+		return "0";
+	string temp = "";
+	string returnvalue = "";
+	while (number > 0)
+	{
+		temp += number % 10 + 48;
+		number /= 10;
+	}
+	for (int i = 0; i < temp.length(); i++)
+	{
+		returnvalue += temp[temp.length() - i - 1];
+	}
+
+	return returnvalue;
+}
+
 void Engine::reset(int** m, bool** b, int size)
 {
 
@@ -704,6 +718,7 @@ void Engine::reset(int** m, bool** b, int size)
 
 
 }
+
 int Engine::findmty(int** m, int size)
 {
 	for (int i = 0; i < size; i++) {
@@ -715,8 +730,8 @@ int Engine::findmty(int** m, int size)
 	}
 	return -1;
 }
-bool Engine::solveSudoku(RenderWindow &window ,int** m, bool** b, int size)
-{
+
+bool Engine::solve(int** m, bool** b, int size) {
 	int row, col;
 	int index = findmty(m, size);
 	if (index == -1) return true;
@@ -733,10 +748,7 @@ bool Engine::solveSudoku(RenderWindow &window ,int** m, bool** b, int size)
 		{
 
 			m[row][col] = i;
-			
-
-
-			if (solveSudoku(window,m, b, size))
+			if (solve(m, b, size))
 			{
 				return true;
 			}
@@ -745,6 +757,5 @@ bool Engine::solveSudoku(RenderWindow &window ,int** m, bool** b, int size)
 	}
 	return false;
 }
-
 
 

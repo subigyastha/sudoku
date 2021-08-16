@@ -4,8 +4,13 @@
 #include "Game.h"
 #include <string>
 #include"Mtime.h"
+#include"TextBox.h"
+#include"button.h"
+#include"Player.h"
+
 using namespace std;
 using namespace sf;
+
 
 struct Input {
 	int val;
@@ -13,10 +18,11 @@ struct Input {
 	Text cell;
 };
 
+
 class Engine
 {
 private:
-	bool clockreset=true,endreset=true;
+	bool clockreset=true,endreset=true,solveb=false;
 	Clock clock;
 	Time tm,endtm;
 	Font font;
@@ -38,7 +44,9 @@ private:
 	bool solve(int** m,bool **b,int size);
 	Text displaytime();
 	void starttime();
+	
 public:
+
 	Engine();
 	~Engine();
 	bool runEngine(RenderWindow &window ,int _level);

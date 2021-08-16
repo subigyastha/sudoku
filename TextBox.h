@@ -5,172 +5,176 @@
 #define DELETE_KEY 8
 #define ENTER_KEY 13
 #define ESC_KEY 27
+using namespace sf;
 
 class TextBox
 {
 public:
-	TextBox()
-	{
+    std::string name;
+    std::string roll;
+    TextBox()
+    {
 
-	}
-	TextBox(int size, sf::Color color, bool select) {
+    }
+    TextBox(int size, sf::Color color, bool select) {
 
-		textBox.setCharacterSize(size);
-		textBox.setFillColor(color);
-		isSelected = select;
-		if (select) {
-			textBox.setString("_");
+        textBox.setCharacterSize(size);
+        textBox.setFillColor(color);
+        isSelected = select;
+        if (select) {
+            textBox.setString("_");
 
-		}
-		else {
-			textBox.setString("");
-		}
-	}
-	void setFont(sf::Font& font)
-	{
-		textBox.setFont(font);
-	}
-	void setboundery(sf::Color color)
-	{
-		textBox.setOutlineColor(color);
-	}
-	void setPosition(sf::Vector2f pos)
-	{
-		textBox.setPosition(pos);
-	}
-	void setLimit(bool TOF)
-	{
-		hasLimit = TOF;
-	}
-	void setLimit(bool TOF, int lim)
-	{
-		hasLimit = TOF;
-		limit = lim;
-	}
-	void setSelected(bool sel)
-	{
-		isSelected = sel;
-		if (!sel)
-		{
-			std::string t = text.str();
-			std::string newT = "";
-			for (int i = 0; i < t.length() - 1; i++)
-			{
-				newT = t[i];
-			}
-			textBox.setString(newT);
-		}
-	}
-	std::string getText() {
-		return text.str();
+        }
+        else {
+            textBox.setString("");
+        }
+    }
+    void setFont(sf::Font& font)
+    {
+        textBox.setFont(font);
+    }
 
-	}
+    void setFillColors(sf::Color color) {
+        textBox.setFillColor(color);
+    }
 
-	void drawTo(sf::RenderWindow& window)
-	{
-		window.draw(textBox);
-	}
-	void typedOn(sf::Event evnt)
-	{
-		if (isSelected) {
-			int charTyped = evnt.text.unicode;
-			if (charTyped < 128)
-			{
-				if (hasLimit)
-				{
+    void drawBox(sf::RenderWindow &window) {
+ 
+        txtBox.setSize(sf::Vector2f(190, textBox.getCharacterSize() + 20));
+        txtBox.setOutlineColor(sf::Color(200,200,200,150));
+        txtBox.setFillColor(sf::Color::White);
+        txtBox.setOutlineThickness(5);
+        txtBox.setPosition(POS.x-10,POS.y-10);
+        window.draw(txtBox);
+    }
+    void setboundery(sf::Color color)
+    {
+        textBox.setOutlineColor(color);
+    }
+    void setPosition(sf::Vector2f pos)
+    {
+        textBox.setPosition(pos);
+        POS = pos;
+    }
 
-					if (text.str().length() < limit)
-					{
-						inputLogic(charTyped);
+    void setLimit(bool TOF)
+    {
+        hasLimit = TOF;
+        limit = 5;
+    }
+    void setLimit(bool TOF, int lim)
+    {
+        hasLimit = TOF;
+        limit = lim;
+    }
+    void setSelected(bool sel)
+    {
+        isSelected = sel;
+        if (!sel)
+        {
+            std::string t = text.str();
+            std::string newT = "";
+            for (int i = 0; i < t.length() - 1; i++)
+            {
+                newT += t[i];
+            }
+            textBox.setString(newT);
+        }
+    }
+    std::string getText() {
+        return text.str();
 
-					}
-					else if (text.str().length() > limit && charTyped == DELETE_KEY)
-					{
-						deletLastCharacter();
-					}
-					else
-					{
-						inputLogic(charTyped);
-					}
+    }
 
-				}
-				else
-				{
-					inputLogic(charTyped);
+    void drawTo(sf::RenderWindow& window)
+    {
+        window.draw(textBox);
+    }
+    void typedOn(sf::Event evnt)
+    {
+        if (isSelected) {
+            int charTyped = evnt.text.unicode;
+            if ((charTyped < 128 && charTyped>64) || charTyped==DELETE_KEY)
+            {
+                if (hasLimit)
+                {
 
-				}
+                    if (text.str().length() < limit)
+                    {
+                        inputLogic(charTyped);
 
-			}
-		}
-	}
-	void drawBack(sf::RenderWindow &window,sf::Vector2f pos)
-	{
-		backGroundForm.setPosition(pos);
-		backGroundForm.setSize({ 200,40 });
-		backGroundForm.setFillColor(sf::Color(200, 200, 200, 100));
-		window.draw(backGroundForm);
-		
-	
-	}
-	bool isMouseOver(sf::RenderWindow& window)
-	{
-		sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-		if (backGroundForm.getGlobalBounds().contains(mousePos.x, mousePos.y))
-		{
-			return true;
-		}
-		return false;
+                    }
+                    else if (text.str().length() >= limit && charTyped == DELETE_KEY)
+                    {
+                        deletLastCharacter();
+                    }
+                }
+                else
+                {
+                    inputLogic(charTyped);
 
-	}
-	void setFillColors(sf::Color color) {
-		backGroundForm.setFillColor(color);
-	}
-public:
-	std::string name;
-	std::string roll;
-	sf::RectangleShape backGroundForm;
+                }
+
+            }
+        }
+    }
+    bool isMouseOver(sf::RenderWindow& window)
+    {
+        Vector2i mousePos = Mouse::getPosition(window);
+        if (txtBox.getGlobalBounds().contains(mousePos.x, mousePos.y))
+        {
+            return true;
+        }
+        return false;
+
+    }
+    bool selectornot() {
+        return isSelected;
+    }
+    
 private:
-	
-	sf::Text textBox;
-	std::ostringstream text;
-	bool isSelected = false;
-	bool hasLimit = false;
-	int limit;
-	void inputLogic(int charTyped) {
-		if (charTyped != DELETE_KEY && charTyped != ENTER_KEY && charTyped != ESC_KEY)
-		{
-			text << static_cast<char>(charTyped);
 
-		}
-		else if (charTyped == DELETE_KEY)
-		{
-			if (text.str().length() > 0)
-			{
-				deletLastCharacter();
-			}
+    sf::Text textBox;
+    sf::RectangleShape txtBox;
+    std::ostringstream text;
+    bool isSelected = false;
+    bool hasLimit=false;
+    int limit;
+    sf::Vector2f POS;
+    void inputLogic(int charTyped) {
+        if (charTyped != DELETE_KEY && charTyped != ENTER_KEY && charTyped != ESC_KEY || charTyped==105)
+        {
+            text << static_cast<char>(charTyped);
 
-		}
-		else if (charTyped == ENTER_KEY)
-		{
-			name = text.str();
-		}
-		textBox.setString(text.str() + "_");
-	}
-	void deletLastCharacter()
-	{
-		std::string t = text.str();
-		std::string newT = "";
-		for (int i = 0; i < t.length() - 1; i++)
-		{
-			newT += t[i];
-		}
-		text.str("");
-		text << newT;
-		textBox.setString(text.str());
-	}
+        }
+        else if (charTyped == DELETE_KEY && charTyped!=105)
+        {
+            if (text.str().length() > 0)
+            {
+               // std::cout << "deleted";
+                deletLastCharacter();
+            }
+
+        }
+        else if (charTyped == ENTER_KEY)
+        {
+            name = text.str();
+        }
+        textBox.setString(text.str() + "_");
+    }
+    void deletLastCharacter()
+    {
+        std::string t = text.str();
+        std::string newT = "";
+        for (int i = 0; i < t.length() - 1; i++)
+        {
+            newT += t[i];
+        }
+        text.str("");
+        text << newT;
+        textBox.setString(text.str());
+    }
 
 
 
 };
-
-
