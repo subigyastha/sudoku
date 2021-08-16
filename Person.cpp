@@ -15,5 +15,8 @@ string Person::getname() {
 }
 
 void Person::setname(string n) {
-	name = n;
+	if (n.length() == 0)
+		name = "no_name";
+	else
+		name = n;
 }
