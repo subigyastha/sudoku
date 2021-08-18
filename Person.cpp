@@ -1,3 +1,4 @@
+
 #include "Person.h"
 
 Person::Person() {
@@ -15,8 +16,9 @@ string Person::getname() {
 }
 
 void Person::setname(string n) {
-	if (n.length() == 0)
-		name = "no_name";
+	if (n.length() <= 0)
+		name = "No_Name";
 	else
-		name = n;
+	name = n;
+
 }

@@ -1,15 +1,16 @@
+
 #include "Mtime.h"
 #include<iostream>
 
 Mtime::Mtime() {
-	hour = 0;
-	minute = 0;
-	second = 0;
-	mytime = 0;
+    hour = 0;
+    minute = 0;
+    second = 0;
+    mytime = 0;
 }
 
-Mtime:: Mtime(float f) {
-	settime(f);
+Mtime::Mtime(float f) {
+    settime(f);
 }
 
 void Mtime::settime(float f) {
