@@ -15,15 +15,16 @@ public:
 	~Game(void);
 	void runGame();
 private:
+	Texture texture;
 	Font font;
-	enum GameState { MENU, GAME, AUTHOR, END ,RULES };
+	enum GameState { MENU, GAME, AUTHOR, END, RULES ,RECORD};
 	GameState state;
 	void levels();
 	void single();
 	void author();
 	void menu();
 	void rules();
+	void playerRecord();
 };
 
-	
 
