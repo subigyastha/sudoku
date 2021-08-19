@@ -1,12 +1,16 @@
 #pragma once
 
 //#include "Player.h"
-
 #include "Game.h"
 #include <string>
+#include"Mtime.h"
+#include"TextBox.h"
+#include"button.h"
+#include"Player.h"
 
 using namespace std;
 using namespace sf;
+
 
 struct Input {
 	int val;
@@ -14,35 +18,39 @@ struct Input {
 	Text cell;
 };
 
+
 class Engine
 {
 private:
-	bool clockreset = true, endreset = true;
-	bool solveb=false;
+	bool clockreset=true,endreset=true,solveb=false;
 	Clock clock;
+	Time tm,endtm;
 	Font font;
-	Time tm, endtm;
 	Texture texture;
 	enum engineState { GAME, GAMEOVER };
 	engineState state;
 	int CellSize, FontSize;
-	void fillTable(int** m, int& size, RenderWindow& window);
-	void setLevel(int** m, bool** b, int size, int difficulty);
-	void selectCell(RenderWindow& window, int size, int& index, int** matrix, bool** bloc, Input& input);
-	void drawSquare(RenderWindow& window, int** matrix, bool** bloc, int size, int index);
+	void fillTable(int **m, int &size, RenderWindow &window);
+	void setLevel(int** m, bool **b, int size, int difficulty);
+	void selectCell(RenderWindow &window, int size, int &index, int** m, bool **bloc, Input &input);
+	void drawSquare(RenderWindow &window, int** m, bool **bloc, int size, int index);
 	bool checkRow(int** m, int size, int row, int value);
 	bool checkColumn(int** m, int size, int column, int value);
-	bool checkSquare(int** m, int size, int row, int column, int value);
+	bool checkSquare(int **m, int size, int row, int column, int value);
 	bool removing(bool bol[16], int t);
 	bool checkWin(int** m, int size);
+	int findmty(int** m,int size);
 	void reset(int** m, bool** b, int size);
-	bool solveSudoku(RenderWindow &window,int** m, bool** b, int size);
-	int findmty(int** m, int size);
-	void starttime();
+	bool solve(int** m,bool **b,int size);
 	Text displaytime();
-
+	void starttime();
+	
 public:
+
 	Engine();
 	~Engine();
-	bool runEngine(RenderWindow& window, int _level);
+	bool runEngine(RenderWindow &window ,int _level);
 };
+
+
+

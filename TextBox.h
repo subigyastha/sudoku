@@ -38,13 +38,13 @@ public:
         textBox.setFillColor(color);
     }
 
-    void drawBox(sf::RenderWindow& window) {
-
+    void drawBox(sf::RenderWindow &window) {
+ 
         txtBox.setSize(sf::Vector2f(190, textBox.getCharacterSize() + 20));
-        txtBox.setOutlineColor(sf::Color(200, 200, 200, 150));
+        txtBox.setOutlineColor(sf::Color(200,200,200,150));
         txtBox.setFillColor(sf::Color::White);
         txtBox.setOutlineThickness(5);
-        txtBox.setPosition(POS.x - 10, POS.y - 10);
+        txtBox.setPosition(POS.x-10,POS.y-10);
         window.draw(txtBox);
     }
     void setboundery(sf::Color color)
@@ -81,11 +81,6 @@ public:
             textBox.setString(newT);
         }
     }
-    void reset() {
-        textBox.setString("");
-        isSelected = false;
-        text.str("");
-    }
     std::string getText() {
         return text.str();
 
@@ -99,7 +94,7 @@ public:
     {
         if (isSelected) {
             int charTyped = evnt.text.unicode;
-            if ((charTyped < 128 && charTyped>64) || charTyped == DELETE_KEY)
+            if ((charTyped < 128 && charTyped>64) || charTyped==DELETE_KEY)
             {
                 if (hasLimit)
                 {
@@ -136,27 +131,27 @@ public:
     bool selectornot() {
         return isSelected;
     }
-
+    
 private:
 
     sf::Text textBox;
     sf::RectangleShape txtBox;
     std::ostringstream text;
     bool isSelected = false;
-    bool hasLimit = false;
+    bool hasLimit=false;
     int limit;
     sf::Vector2f POS;
     void inputLogic(int charTyped) {
-        if (charTyped != DELETE_KEY && charTyped != ENTER_KEY && charTyped != ESC_KEY || charTyped == 105)
+        if (charTyped != DELETE_KEY && charTyped != ENTER_KEY && charTyped != ESC_KEY || charTyped==105)
         {
             text << static_cast<char>(charTyped);
 
         }
-        else if (charTyped == DELETE_KEY && charTyped != 105)
+        else if (charTyped == DELETE_KEY && charTyped!=105)
         {
             if (text.str().length() > 0)
             {
-                // std::cout << "deleted";
+               // std::cout << "deleted";
                 deletLastCharacter();
             }
 
