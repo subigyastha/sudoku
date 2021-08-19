@@ -1,10 +1,17 @@
 #include "Game.h"
+#include"button.h"
+#include"rules.h"
+#include"Engine.h"
+#include"Record.h"
 
-RenderWindow window(VideoMode(1000, 600), "Sudoku", sf::Style::Titlebar | sf::Style::Close);
+sf::RenderWindow window(VideoMode(1000, 800), "Sudoku", sf::Style::Titlebar | sf::Style::Close);
+
 
 
 Game::Game()
 {
+	texture.loadFromFile("back.png");
+	
 	state = END;
 
 	if (!font.loadFromFile("arial.ttf"))
@@ -37,32 +44,136 @@ void Game::runGame()
 		case GameState::RULES:
 			rules();
 			break;
+		case GameState::RECORD:
+			playerRecord();
+			break;
 		}
 		
 	}
 }
 
+void Game::playerRecord()
+{
+	Record r(font);
+	Text title("Record", font, 80);
+	title.setStyle(Text::Bold);
+	
+	
+	Sprite background(texture);
+	button back("Back", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 60), 35);
+	back.setFont(font);
+	back.setPosition({ 700,670 });
+
+
+	while (window.isOpen() && state == RECORD)
+	{
+
+		sf::Event evnt;
+		while (window.pollEvent(evnt)) {
+			if (evnt.type == sf::Event::Closed)
+				window.close();
+			if (evnt.type == sf::Event::MouseButtonReleased && back.isMouseOver(window) && evnt.key.code == Mouse::Left)
+				state = MENU;
+
+
+		}
+
+		if (back.isMouseOver(window))
+			back.setFillColors(Color(200, 200, 200, 230));
+		else
+			back.setFillColors(Color(200, 200, 200, 100));
+
+		
+
+		window.clear();
+		
+
+		window.draw(background);
+		r.getText(window,font);
+
+		window.draw(title);
+		back.drawTo(window);
+
+		window.display();
+	}
+
+}
+void Game::rules()
+{
+	Text title("Rules", font, 80);
+	title.setStyle(Text::Bold);
+	const String r[] = { "1) Every square has to contain a single number",
+"2) Only the numbers from 1 through to 9 can be used",
+"3) Each 3×3 box can only contain each number from 1 to 9 once",
+"4) Each vertical column can only contain each number from 1 to 9 once",
+"5) Each horizontal row can only contain each number from 1 to 9 once" };
+	rule Rules[5];
+	for (int i = 0; i < 5; i++) {
+		Rules[i].set(r[i], font);
+	}
+	Sprite background(texture);
+	button back("Back", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 60), 35);
+	back.setFont(font);
+	back.setPosition({ 700,670 });
+
+
+	while (window.isOpen() && state == RULES)
+	{
+
+		sf::Event evnt;
+		while (window.pollEvent(evnt)) {
+			if (evnt.type == sf::Event::Closed)
+				window.close();
+			if (evnt.type == sf::Event::MouseButtonReleased && back.isMouseOver(window) &&evnt.key.code==Mouse::Left)
+				state = MENU;
+
+
+		}
+
+		if (back.isMouseOver(window))
+			back.setFillColors(Color(200, 200, 200, 230));
+		else
+			back.setFillColors(Color(200, 200, 200, 100));
+
+		for (int i = 0; i < 5; i++) {
+			Rules[i].setPos({ 20,(float)(i+3.5) * 40 });
+		}
+
+		window.clear();
+		
+		window.draw(background);
+		for (int i = 0; i < 5; i++) {
+			Rules[i].drawTo(window);
+		}
+		window.draw(title);
+		back.drawTo(window);
+
+		window.display();
+	}
+
+}
+
 
 void Game::menu()
 {
+	Sprite background(texture);
 	//window.setFramerateLimit(60);
 	Text title("Sudoku", font, 80);
 	title.setStyle(Text::Bold);
 
-	title.setPosition(800 / 2 - title.getGlobalBounds().width / 2, 60);
+	title.setPosition(1000 / 2 - title.getGlobalBounds().width / 2, 60);
 
-	const int ile = 4;
+	const int ile = 5;
 
-	Text tekst[ile];
+	button btn[ile];
 
-	string str[] = { "Play","Author","Rules","Exit" };
-	for (int i = 0; i<ile; i++)
+	string str[] = { "Play","Author","Rules","Record","Exit"};
+	for (int i = 0; i < ile; i++)
 	{
-		tekst[i].setFont(font);
-		tekst[i].setCharacterSize(65);
-
-		tekst[i].setString(str[i]);
-		tekst[i].setPosition(800 / 2 - tekst[i].getGlobalBounds().width / 2, 200 + i * 120);
+		btn[i].set(Color(200,200,200,150),Color::White, str[i], 30, {300,70});
+		btn[i].setFont(font);
+		
+		btn[i].setPosition({355,(float)(i+1.8) * 100 });
 	}
 
 	while (state == MENU)
@@ -72,83 +183,81 @@ void Game::menu()
 
 		while (window.pollEvent(event))
 		{
-			//WciÅ“niÃªcie ESC lub przycisk X
+			//Wciœniêcie ESC lub przycisk X
 			if (event.type == Event::Closed || event.type == Event::KeyPressed &&
 				event.key.code == Keyboard::Escape)
 				state = END;
 
-			//klikniÃªcie MENU                                        
-			else if (tekst[0].getGlobalBounds().contains(mouse) &&
+			//klikniêcie MENU                                        
+			else if (btn[0].isMouseOver(window)&&
 				event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
 			{
 				state = GAME;
 			}
 
 			//klikniecie AUTHOR
-			else if (tekst[1].getGlobalBounds().contains(mouse) &&
+			else if (btn[1].isMouseOver(window) &&
 				event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
 			{
 				state = AUTHOR;
 			}
-
-			//klikniÃªcie EXIT
-			else if (tekst[2].getGlobalBounds().contains(mouse) &&
+			else if (btn[2].isMouseOver(window) &&
 				event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
 			{
 				state = RULES;
 			}
-			else if (tekst[3].getGlobalBounds().contains(mouse) &&
+			//klikniêcie EXIT
+			else if (btn[3].isMouseOver(window) &&
+				event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
+			{
+				state = RECORD;
+			}
+			else if (btn[4].isMouseOver(window) &&
 				event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
 			{
 				state = END;
 			}
 		}
-		for (int i = 0; i<ile; i++)
-			if (tekst[i].getGlobalBounds().contains(mouse))
-				tekst[i].setFillColor(Color::Red);
-			else tekst[i].setFillColor(Color::White);
+		for (int i = 0; i < ile; i++)
+			if (btn[i].isMouseOver(window))
+				btn[i].setFillColors(Color(200,200,200,230));
+			else btn[i].setFillColors(Color(200,200,200,100));
 
-			window.clear();
-
-			window.draw(title);
-			for (int i = 0; i<ile; i++)
-				window.draw(tekst[i]);
-
-			window.display();
-	}
-}
-
-void Game::rules() {
-	while (state == RULES && window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-
-		}
 		window.clear();
+		
+		window.draw(background);
+		window.draw(title);
+	
+		for (int i = 0; i < ile; i++)
+		{
+		
+			btn[i].drawTo(window);
+		}
+
 		window.display();
 	}
 }
+
 void Game::levels()
 {
+	Sprite background(texture);
 	sf::Text title("Levels", font, 90);
 	title.setStyle(sf::Text::Bold);
 
-	title.setPosition(800 / 2 - title.getGlobalBounds().width / 2, 30);
+	title.setPosition(1000 / 2 - title.getGlobalBounds().width / 2, 30);
 	title.setStyle(sf::Text::Bold);
-	
-	string easy, medium, hard;
-	const int ile = 4;
 
-	sf::Text tekst[ile];
+	string easy, medium, hard;
+	const int size = 4;
+	button btn[size];
 
 	std::string aut[] = { "Easy","Medium","Hard", "back" };
-	for (int i = 0; i<ile; i++)
+	for (int i = 0; i < size; i++)
 	{
-		tekst[i].setFont(font);
-		tekst[i].setCharacterSize(65);
-		tekst[i].setString(aut[i]);
-		tekst[i].setPosition(800 / 2 - tekst[i].getGlobalBounds().width / 2, 150 + i * 120);
+		btn[i].set(Color(200, 200, 200, 150), Color::White, aut[i], 30, { 300,70 });
+		btn[i].setFont(font);
+
+		btn[i].setPosition({ 355,(float)(i + 1.8) * 100 });
 	}
 
 
@@ -163,15 +272,15 @@ void Game::levels()
 			if (event.type == sf::Event::Closed)
 				window.close();
 
-			if (tekst[0].getGlobalBounds().contains(mouse) && event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
+			if (btn[0].isMouseOver(window) && event.type == Event::MouseButtonReleased && event.key.code == Mouse::Left)
 			{
-				if (engine.runEngine(window,0))
+				if (engine.runEngine(window, 0))
 					state = GAME;
 				else
 					state = MENU;
 			}
 
-			else if (tekst[1].getGlobalBounds().contains(mouse) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			else if (btn[1].isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
 			{
 				if (engine.runEngine(window, 1))
 					state = GAME;
@@ -179,7 +288,7 @@ void Game::levels()
 					state = MENU;
 			}
 
-			else if (tekst[2].getGlobalBounds().contains(mouse) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			else if (btn[2].isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
 			{
 				if (engine.runEngine(window, 2))
 					state = GAME;
@@ -187,47 +296,45 @@ void Game::levels()
 					state = MENU;
 			}
 
-			else if (tekst[3].getGlobalBounds().contains(mouse) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
+			else if (btn[3].isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
 			{
 				state = MENU;
 			}
 		}
 
-		for (int i = 0; i<ile; i++)
-			if (tekst[i].getGlobalBounds().contains(mouse))
-				tekst[i].setFillColor(Color::Red);
-			else tekst[i].setFillColor(Color::White);
+		for (int i = 0; i < size; i++)
+			if (btn[i].isMouseOver(window))
+				btn[i].setFillColors(Color(200, 200, 200, 230));
+			else btn[i].setFillColors(Color(200, 200, 200, 100));
 
 
 		window.clear();
+		window.draw(background);
+
 		window.draw(title);
-		for (int i = 0; i<ile; i++)
-			window.draw(tekst[i]);
+	
+		for (int i = 0; i < size; i++)
+			btn[i].drawTo(window);
 		window.display();
 	}
-	
+
 }
 
 void Game::author()
 {
+	Sprite background(texture);
 	sf::Text title("Author", font, 90);
 	title.setStyle(sf::Text::Bold);
 
 	title.setPosition(800 / 2 - title.getGlobalBounds().width / 2, 60);
 	title.setStyle(sf::Text::Bold);
 
-	const int ile = 2;
 
-	sf::Text tekst[ile];
-
-	std::string aut[] = { "Patrycja Zan", "back" };
-	for (int i = 0; i<ile; i++)
-	{
-		tekst[i].setFont(font);
-		tekst[i].setCharacterSize(65);
-		tekst[i].setString(aut[i]);
-		tekst[i].setPosition(800 / 2 - tekst[i].getGlobalBounds().width / 2, 200 + i * 120);
-	}
+	button back("Back", Color(200, 200, 200, 100), sf::Color::White, sf::Vector2f(200, 60), 35);
+	back.setFont(font);
+	back.setPosition({ 700,670 });
+	
+	
 
 
 	while (state == AUTHOR && window.isOpen())
@@ -240,21 +347,26 @@ void Game::author()
 			if (event.type == sf::Event::Closed)
 				window.close();
 			//klikniecie EXIT
-			else if (tekst[1].getGlobalBounds().contains(mouse) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left)
-			{
+			
+			if (back.isMouseOver(window) && event.type == sf::Event::MouseButtonReleased && event.key.code == sf::Mouse::Left) {
 				state = MENU;
 			}
 		}
-		
-		if (tekst[1].getGlobalBounds().contains(mouse))
-			tekst[1].setFillColor(Color::Red);
-		else tekst[1].setFillColor(Color::White);
+
+		if (back.isMouseOver(window))
+			back.setFillColors(Color(200, 200, 200, 230));
+		else
+			back.setFillColors(Color(200, 200, 200, 100));
 
 
 		window.clear();
+		window.draw(background);
 		window.draw(title);
-		for (int i = 0; i<ile; i++)
-			window.draw(tekst[i]);
+		
+		
+		
+		back.drawTo(window);
+			
 		window.display();
 	}
 }

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-class Player:public Person
+class Player :public Person
 {
 protected:
 	float Time;//time
@@ -17,7 +17,7 @@ public:
 	Mtime getTime();
 	string getDifficulty();
 	void setTime(float f);
+	void writeToFile(string name, string level, Mtime time,bool &once);
 	void setDifficluty(int n);
-	void writeToFile();
+	
 };
-
